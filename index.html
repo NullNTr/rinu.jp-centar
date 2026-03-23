@@ -1,591 +1,215 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>逆探知システム | NEO TRACE v2.0</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none; /* 近未来的な選択禁止感 */
-        }
-
-        body {
-            min-height: 100vh;
-            background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
-            font-family: 'Share Tech Mono', 'Courier New', 'SF Mono', 'Fira Code', monospace;
-            color: #0ff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1.5rem;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* 近未来感グリッド + ホログラム背景 */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 255, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.08) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* サイバーな光の揺らぎ */
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(ellipse at 70% 40%, rgba(0, 200, 255, 0.1), transparent 70%);
-            pointer-events: none;
-            animation: pulseGlow 6s infinite alternate;
-            z-index: 0;
-        }
-
-        @keyframes pulseGlow {
-            0% { opacity: 0.3; }
-            100% { opacity: 0.8; }
-        }
-
-        /* メインカード */
-        .neo-card {
-            position: relative;
-            z-index: 10;
-            max-width: 850px;
-            width: 100%;
-            background: rgba(8, 16, 28, 0.65);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 255, 255, 0.4);
-            border-radius: 2rem;
-            padding: 2rem 2rem 2rem 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        /* ヘッダー */
-        .title-section {
-            text-align: center;
-            margin-bottom: 2rem;
-            border-bottom: 1px dashed #0ff;
-            padding-bottom: 1rem;
-        }
-        .title-section h1 {
-            font-size: 2.2rem;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            text-shadow: 0 0 8px #0ff, 0 0 18px #0ff;
-            font-weight: 400;
-        }
-        .title-section p {
-            font-size: 0.75rem;
-            color: #8aaaff;
-            margin-top: 0.5rem;
-            letter-spacing: 2px;
-        }
-
-        /* 入力エリア */
-        .input-area {
-            margin: 1.5rem 0 1.8rem 0;
-        }
-        .input-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            align-items: center;
-            justify-content: center;
-        }
-        .input-group input {
-            flex: 4;
-            min-width: 220px;
-            background: rgba(0, 20, 30, 0.8);
-            border: 1px solid #0ff;
-            padding: 1rem 1.2rem;
-            border-radius: 60px;
-            font-size: 1rem;
-            font-family: monospace;
-            color: #0ff;
-            outline: none;
-            transition: all 0.2s;
-            letter-spacing: 1px;
-            backdrop-filter: blur(5px);
-        }
-        .input-group input:focus {
-            border-color: #f0f;
-            box-shadow: 0 0 12px #f0f, 0 0 5px #0ff;
-            background: rgba(0, 0, 0, 0.7);
-        }
-        .input-group input::placeholder {
-            color: #3a6e8f;
-            font-style: italic;
-        }
-        .input-group button {
-            flex: 1;
-            background: linear-gradient(135deg, #0a2f3f, #02121c);
-            border: 1px solid #0ff;
-            color: #0ff;
-            padding: 1rem 1.4rem;
-            border-radius: 60px;
-            font-weight: bold;
-            font-family: monospace;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: 0.2s;
-            backdrop-filter: blur(4px);
-            letter-spacing: 2px;
-            box-shadow: 0 0 5px rgba(0,255,255,0.3);
-        }
-        .input-group button:hover {
-            background: #0ff;
-            color: #010b10;
-            box-shadow: 0 0 20px #0ff;
-            border-color: #fff;
-            cursor: pointer;
-        }
-
-        /* 逆探知結果カード */
-        .result-area {
-            background: rgba(0, 10, 18, 0.7);
-            border-left: 4px solid #0ff;
-            border-radius: 1.2rem;
-            padding: 1.2rem 1.5rem;
-            margin: 1.5rem 0;
-            backdrop-filter: blur(4px);
-            transition: all 0.2s;
-        }
-        .result-item {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-            font-size: 0.95rem;
-        }
-        .result-label {
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #7ef;
-        }
-        .result-value {
-            font-family: monospace;
-            word-break: break-all;
-            text-align: right;
-            color: #cfecff;
-            font-weight: 500;
-        }
-        .glitch-text {
-            animation: glitch 0.8s infinite alternate;
-        }
-        @keyframes glitch {
-            0% { text-shadow: -1px 0 #0ff, 1px 0 #f0f; opacity: 0.9; }
-            100% { text-shadow: 1px 0 #0ff, -1px 0 #f0f; opacity: 1; }
-        }
-
-        /* ログ欄 (下の方) + 死角アニメーション */
-        .log-section {
-            margin-top: 2rem;
-            position: relative;
-        }
-        .log-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 0.7rem;
-            border-bottom: 1px solid #0ff;
-            padding-bottom: 0.4rem;
-        }
-        .log-header span {
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-            font-weight: bold;
-        }
-        .clear-log {
-            background: none;
-            border: none;
-            color: #f88;
-            font-size: 0.7rem;
-            cursor: pointer;
-            font-family: monospace;
-            transition: 0.2s;
-            padding: 0.2rem 0.6rem;
-            border-radius: 20px;
-            background: rgba(255,0,100,0.2);
-        }
-        .clear-log:hover {
-            color: #ff3366;
-            text-shadow: 0 0 4px red;
-        }
-        .log-container {
-            background: #010a0fcc;
-            border-radius: 1.2rem;
-            padding: 1rem;
-            height: 220px;
-            overflow-y: auto;
-            font-size: 0.8rem;
-            font-family: monospace;
-            border: 1px solid #0ff5;
-            backdrop-filter: blur(5px);
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.6), 0 0 5px #0ff3;
-        }
-        .log-entry {
-            padding: 0.5rem 0.4rem;
-            border-bottom: 0.5px solid #0ff3;
-            color: #bdf;
-            display: flex;
-            gap: 0.6rem;
-            font-size: 0.75rem;
-            animation: fadeSlide 0.2s ease-out;
-        }
-        .log-time {
-            color: #0ff;
-            min-width: 80px;
-        }
-        .log-msg {
-            word-break: break-word;
-        }
-
-        /* 死角アニメーション (右下にホロ風三角形) */
-        .dead-angle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 90px;
-            height: 90px;
-            pointer-events: none;
-            z-index: 99;
-            opacity: 0.7;
-        }
-        .dead-angle svg {
-            filter: drop-shadow(0 0 6px cyan);
-            animation: rotateScan 4s infinite linear;
-        }
-        @keyframes rotateScan {
-            0% { transform: rotate(0deg) scale(1); opacity: 0.6; }
-            50% { transform: rotate(10deg) scale(1.1); opacity: 1; filter: drop-shadow(0 0 12px magenta);}
-            100% { transform: rotate(0deg) scale(1); opacity: 0.6;}
-        }
-
-        /* スクロールバーカスタム */
-        .log-container::-webkit-scrollbar {
-            width: 5px;
-        }
-        .log-container::-webkit-scrollbar-track {
-            background: #02121c;
-        }
-        .log-container::-webkit-scrollbar-thumb {
-            background: #0ff;
-            border-radius: 10px;
-        }
-
-        @media (max-width: 580px) {
-            .neo-card { padding: 1.2rem; }
-            .title-section h1 { font-size: 1.5rem; }
-            .result-item { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .result-value { text-align: left; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rinu短縮URL 詳細チェッカー</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #d32f2f;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      margin: 15px 0;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      margin-right: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    #checkBtn {
+      background: #d32f2f;
+      color: white;
+    }
+    #checkBtn:hover { background: #b71c1c; }
+    #pasteBtn {
+      background: #1976d2;
+      color: white;
+    }
+    #pasteBtn:hover { background: #1565c0; }
+    #loading {
+      font-weight: bold;
+      margin: 20px 0;
+      min-height: 1.5em;
+    }
+    .red_text { color: #d32f2f; }
+    #detail {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    a { color: #1976d2; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
 
-<div class="neo-card">
-    <div class="title-section">
-        <h1>◢ CENTAR·逆探知 ◣</h1>
-        <p>// REVERSE TRACE :: 次世代IP/ドメイン特定システム //</p>
+  <div class="container">
+    <h1>rinu.jp逆探知</h1>
+
+    <p>rinu.cf / rinu.jp の短縮URLを貼り付けて「チェック」ボタンを押してください。</p>
+
+    <input type="text" id="url" placeholder="https://rinu.cf/xxxxxx または https://rinu.jp/xxxxxx を入力" autofocus>
+
+    <div>
+      <button id="checkBtn">チェック</button>
+      <button id="pasteBtn">クリップボードから貼り付け</button>
     </div>
 
-    <div class="input-area">
-        <div class="input-group">
-            <input type="text" id="targetInput" placeholder="例: rinu.jp / 8.8.8.8 / ドメイン or IPアドレス" value="rinu.jp">
-            <button id="traceBtn">▶ 逆探知実行</button>
-        </div>
-    </div>
+    <div id="loading"></div>
+    <div id="detail"></div>
+  </div>
 
-    <!-- 逆探知結果表示 -->
-    <div class="result-area" id="resultArea">
-        <div class="result-item">
-            <span class="result-label">🌐 IPアドレス</span>
-            <span class="result-value" id="ipValue">---.--.--.--</span>
-        </div>
-        <div class="result-item">
-            <span class="result-label">📱 モバイル情報</span>
-            <span class="result-value" id="mobileInfo">不明 / 未解析</span>
-        </div>
-        <div class="result-item">
-            <span class="result-label">📅 作られた日</span>
-            <span class="result-value" id="createdDate">----/--/--</span>
-        </div>
-    </div>
+  <script>
+    /**
+     * https://www-creators.com/archives/4463#JavascriptjQueryURL
+     * Get the URL parameter value
+     *
+     * @param  name {string} パラメータのキー文字列
+     * @return  url {url} 対象のURL文字列（任意）
+     */
+    function getParam(name, url) {
+      if (!url) url = window.location.href;
+      name = name.replace(/[\[\]]/g, "\\$&");
+      var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+          results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
 
-    <!-- ログ欄 (下の方) -->
-    <div class="log-section">
-        <div class="log-header">
-            <span>📡 逆探知ログ [ACTIVE]</span>
-            <button class="clear-log" id="clearLogBtn">🗑 ログ消去</button>
-        </div>
-        <div class="log-container" id="logContainer">
-            <div class="log-entry"><span class="log-time">[SYSTEM]</span><span class="log-msg">🔌 逆探知モジュール起動 / 待機中...</span></div>
-            <div class="log-entry"><span class="log-time">[INFO]</span><span class="log-msg">🛸 対象入力待ち &gt; rinu.jp など入力可能</span></div>
-        </div>
-    </div>
-</div>
+    async function check() {
+      let load = document.getElementById("loading");
+      let detail = document.getElementById("detail");
 
-<!-- 死角アニメーション追加: 六角形 + スキャンリング -->
-<div class="dead-angle">
-    <svg width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="50,10 80,30 80,70 50,90 20,70 20,30" fill="none" stroke="#0ff" stroke-width="1.8" stroke-dasharray="4 3"/>
-        <circle cx="50" cy="50" r="12" stroke="#f0f" stroke-width="1.2" fill="none" />
-        <path d="M50 20 L50 38 M50 62 L50 80 M20 50 L38 50 M62 50 L80 50" stroke="#0ff" stroke-width="1.2"/>
-        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="12s" repeatCount="indefinite" additive="sum"/>
-    </svg>
-</div>
+      load.textContent = "取得中...";
+      detail.textContent = "";
 
-<script>
-    (function() {
-        // ----- ログ管理 -----
-        const logContainer = document.getElementById('logContainer');
-        const clearBtn = document.getElementById('clearLogBtn');
-        const traceBtn = document.getElementById('traceBtn');
-        const targetInput = document.getElementById('targetInput');
+      load.classList.remove("red_text");
 
-        // 表示要素
-        const ipSpan = document.getElementById('ipValue');
-        const mobileSpan = document.getElementById('mobileInfo');
-        const createdSpan = document.getElementById('createdDate');
+      let url = document.getElementById("url").value.trim();
 
-        // ログ追加関数 (時限スタンプ付き)
-        function addLog(message, type = 'INFO') {
-            const now = new Date();
-            const timeStr = `[${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}]`;
-            const logDiv = document.createElement('div');
-            logDiv.className = 'log-entry';
-            // 微妙にスタイル変化
-            let prefix = '';
-            if (type === 'TRACE') prefix = '🔍 ';
-            else if (type === 'SUCCESS') prefix = '✅ ';
-            else if (type === 'ERROR') prefix = '⚠️ ';
-            else prefix = '📡 ';
-            logDiv.innerHTML = `<span class="log-time">${timeStr}</span><span class="log-msg">${prefix}${message}</span>`;
-            logContainer.appendChild(logDiv);
-            logDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            // 自動スクロール維持
-            logContainer.scrollTop = logContainer.scrollHeight;
-            // ログの上限200件で古いもの削除 (軽量化)
-            while(logContainer.children.length > 180) {
-                if(logContainer.firstChild) logContainer.removeChild(logContainer.firstChild);
-            }
+      // rinu.cf / rinu.jp の形式チェック
+      const rinu_regex = /^https?:\/\/rinu\.(cf|jp)\/[\w/:%#\$&\?\(\)~\.=\+\-]+$/;
+      const toku_regex = /^https?:\/\/(tokutei\.cf|tokutei\.end2end\.tech)\/\?url=[\w/:%#\$&\?\(\)~\.=\+\-]+$/;
+
+      if (!rinu_regex.test(url)) {
+        load.textContent = "rinu.cf または rinu.jp のURLを入力してください。";
+        load.classList.add("red_text");
+        return;
+      }
+
+      // URLからコード部分を抜き出す
+      let url_code = "";
+      if (url.startsWith("https")) {
+        url_code = url.substring(16); // https://rinu.cf/ の後ろ
+      } else {
+        url_code = url.substring(15); // http://rinu.cf/ の後ろ
+      }
+
+      try {
+        let dat = await (await fetch(`https://api.activetk.jp/urlmin/get&code=${url_code}`)).json();
+
+        console.log(`Send Code: ${url_code}`);
+        console.log(dat);
+
+        let go_url = "http://example.com/";
+
+        if (dat["status"] !== "OK") {
+          load.textContent = "エラー";
+          load.classList.add("red_text");
+
+          if (dat["type"] == 404) {
+            detail.textContent = "URLが存在しません。もう一度お確かめの上、再試行してください。(404)";
+          } else {
+            detail.textContent = `申し訳ございません。予期せぬエラーが発生しました。(${dat["type"]})`;
+          }
+          return;
         }
 
-        // クリアログ
-        clearBtn.addEventListener('click', () => {
-            while(logContainer.firstChild) {
-                logContainer.removeChild(logContainer.firstChild);
-            }
-            addLog('ログ履歴をクリアしました。', 'SYSTEM');
-            addLog('逆探知エンジンはアクティブです。', 'INFO');
-        });
-
-        // 疑似モバイル情報 (デバイスとOS判定)
-        function detectMobileInfo() {
-            const ua = navigator.userAgent;
-            let device = "不明";
-            let os = "OS不明";
-            if (/iPhone/i.test(ua)) device = "iPhone", os = "iOS";
-            else if (/iPad/i.test(ua)) device = "iPad", os = "iOS";
-            else if (/Android/i.test(ua)) device = "Android端末", os = "Android";
-            else if (/Windows Phone/i.test(ua)) device = "Windows Phone", os = "Windows Mobile";
-            else if (/Mac/i.test(ua)) device = "Mac", os = "macOS";
-            else if (/Windows/i.test(ua)) device = "Windows PC", os = "Windows";
-            else if (/Linux/i.test(ua)) device = "Linux端末", os = "Linux";
-            else device = "汎用端末", os = "不明OS";
-            
-            // ブラウザ情報も軽く追加
-            let browser = "不明";
-            if (ua.includes("Chrome") && !ua.includes("Edg")) browser = "Chrome";
-            else if (ua.includes("Firefox")) browser = "Firefox";
-            else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
-            else if (ua.includes("Edg")) browser = "Edge";
-            return `${device} / ${os} / ${browser}`;
+        // 特定ツール判定
+        if (toku_regex.test(dat["LinkURL"])) {
+          load.textContent = "特定ツール有";
+          load.classList.add("red_text");
+          go_url = getParam("url", dat["LinkURL"]);
+        } else {
+          load.textContent = "特定ツールなし";
+          go_url = dat["LinkURL"];
         }
 
-        // ドメイン/IPから作られた日(疑似生成) + 逆探知IPアドレス生成アルゴリズム（近未来的にダミー＋外部API非依存でシミュレート）
-        // ただし、rinu.jp や任意入力に対してIPアドレスをリアルタイム風に生成 (見た目: 実際にドメイン解決できないのでダミーだが可変)
-        // それでも近未来感を出すために「逆探知スキャン」によって生成されるIPをランダム性と入力文字列ハッシュ風で作成
-        
-        function generateFakeIPFromInput(inputStr) {
-            // 入力文字列からシード生成
-            let hash = 0;
-            for(let i = 0; i < inputStr.length; i++) {
-                hash = ((hash << 5) - hash) + inputStr.charCodeAt(i);
-                hash |= 0;
-            }
-            const hashAbs = Math.abs(hash);
-            const oct1 = (hashAbs % 223) + 10;    // 10〜232
-            const oct2 = ((hashAbs >> 8) % 254) + 1;
-            const oct3 = ((hashAbs >> 16) % 254) + 1;
-            const oct4 = ((hashAbs >> 24) % 254) + 1;
-            return `${oct1}.${oct2}.${oct3}.${oct4}`;
-        }
+        const last_use_ip = dat["LastUsed"].substring(11);
 
-        // ドメインっぽい文字列から「作られた日」の偽装生成 (whois風味のリアルなダミー)
-        function generateCreatedDateFromInput(inputStr) {
-            const now = new Date();
-            const baseYear = now.getFullYear();
-            // 入力の文字列長などで年を変動 (2005〜2026)
-            let seed = 0;
-            for(let i=0;i<inputStr.length;i++) seed += inputStr.charCodeAt(i);
-            let year = 2005 + (seed % 22);   // 2005-2026
-            let month = 1 + (seed % 12);
-            let day = 1 + (seed % 28);
-            // 特定キーワード: rinu.jp 専用の演出 (かっこいいので特別)
-            if(inputStr.toLowerCase().includes('rinu')) {
-                year = 2018;
-                month = 3;
-                day = 15;
-            }
-            if(inputStr.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)) {
-                // IPアドレスらしき入力の場合、レジストリ日時を近未来的に
-                year = 2012 + (seed % 12);
-                month = 1 + (seed % 12);
-                day = 1 + (seed % 27);
-            }
-            const dateObj = new Date(year, month-1, day);
-            const Y = dateObj.getFullYear();
-            const M = (dateObj.getMonth()+1).toString().padStart(2,'0');
-            const D = dateObj.getDate().toString().padStart(2,'0');
-            return `${Y}/${M}/${D}`;
-        }
+        // IPinfoで作成者IPの詳細取得
+        let ipinfo = await (await fetch(`https://ipinfo.io/${dat["CreatorInfo"]["IPAddress"]}/json`)).json();
 
-        // モバイル情報は現在アクセスしている端末情報 + 逆探知対象によって擬似的に"接続元モバイル情報"を追加演出
-        // かっこよさのために、対象によって携帯キャリアや基地局っぽい情報もミックス
-        function getEnhancedMobileInfo(targetRaw) {
-            const baseMobile = detectMobileInfo();  // 自分の端末情報
-            // 逆探知で得られる架空モバイル情報: 入力ドメインから独自生成で「対象サーバモバイル対応」のような演出
-            let additional = "";
-            if(targetRaw.toLowerCase().includes('rinu')) {
-                additional = " | 対象サーバ: モバイル最適化済み / 5G対応 / キャリア: ソフトバンク";
-            } else if(targetRaw.includes('.')) {
-                additional = " | 対象ホスト: モバイルデバイス検出[スマホ対応テンプレート]";
-            } else {
-                additional = " | モバイルスキャン: タブレット互換性あり";
-            }
-            // さらに近未来感: 疑似基地局ID
-            const fakeStation = ` [LTE-Band:n78 / 基地局:0x${Math.floor(Math.random()*0xFFFFFF).toString(16).slice(0,4)}]`;
-            return baseMobile + additional + fakeStation;
-        }
+        detail.innerHTML = `
+          <strong>詳細情報</strong><br><br>
+          作成者IPアドレス: <a href="${dat["CreatorInfo"]["MoreInformation"]}" target="_blank">${dat["CreatorInfo"]["IPAddress"]}</a><br>
+          作成者タイムゾーン: ${dat["CreatorInfo"]["TimeZone"]}<br>
+          IPからわかる場所: ${dat["CreatorInfo"]["Location"]}<br>
+          郵便番号: ${ipinfo["postal"] || "不明"}<br>
+          ASN: ${ipinfo["org"] || "不明"}<br><br>
+          <strong>遷移先URL:</strong> <a href="${go_url}" target="_blank">${decodeURIComponent(go_url)}</a><br>
+          作成日: ${dat["CreatedDateTime"]}<br>
+          使用回数: ${dat["UsedCount"]}<br>
+          最後に使用したユーザーのIPアドレス: <a href="https://ipinfo.io/${last_use_ip}" target="_blank">${last_use_ip}</a>
+        `;
 
-        // 逆探知コア (シミュレーションだが近未来的UI)
-        async function performReverseTrace(target) {
-            if(!target || target.trim() === "") {
-                addLog("逆探知対象が空です。ドメイン/IPを入力してください。", "ERROR");
-                return false;
-            }
-            const cleanTarget = target.trim();
-            addLog(`逆探知開始: 対象「${cleanTarget}」に対して量子トレース実行...`, "TRACE");
-            
-            // アニメーション演出: 結果欄に一瞬glitch
-            const resultDiv = document.getElementById('resultArea');
-            resultDiv.style.transition = "0.1s";
-            resultDiv.style.boxShadow = "0 0 10px #f0f, 0 0 20px #0ff";
-            setTimeout(() => { resultDiv.style.boxShadow = ""; }, 300);
-            
-            // まず表示をローディング風
-            ipSpan.innerText = "逆探知中...";
-            mobileSpan.innerText = "スキャン中...";
-            createdSpan.innerText = "解析中...";
-            
-            // 1秒程度の疑似レイテンシ (近未来的感)
-            await new Promise(r => setTimeout(r, 580));
-            
-            // 1. IPアドレス生成 (入力ベース)
-            let resolvedIP = "";
-            // もしIP形式ならそのまま使うが、完全なIPっぽさを強調
-            const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-            if(ipPattern.test(cleanTarget)) {
-                resolvedIP = cleanTarget;
-                addLog(`IP形式を直接認識: ${resolvedIP}`, "SUCCESS");
-            } else {
-                resolvedIP = generateFakeIPFromInput(cleanTarget);
-                addLog(`ドメイン名「${cleanTarget}」をDNS逆引き疑似変換 → ${resolvedIP}`, "TRACE");
-            }
-            
-            // 2. 作られた日
-            const created = generateCreatedDateFromInput(cleanTarget);
-            
-            // 3. モバイル情報 (エンハンスド)
-            const mobile = getEnhancedMobileInfo(cleanTarget);
-            
-            // 最終表示
-            ipSpan.innerText = resolvedIP;
-            mobileSpan.innerText = mobile;
-            createdSpan.innerText = created;
-            
-            // ログに詳細表示
-            addLog(`✓ 逆探知完了: IP=${resolvedIP} / 作成日=${created}`, "SUCCESS");
-            addLog(`📱 モバイル情報: ${mobile.substring(0, 80)}`, "INFO");
-            
-            // 特殊効果: もしrinu.jpが含まれる場合は追加で死角アニメーションと連動したイベントログ
-            if(cleanTarget.toLowerCase().includes('rinu')) {
-                addLog(`⚠️ 特殊シグネチャ検出: rinu.jp ドメインの逆探知により高精度トレース完了`, "TRACE");
-                const angleDiv = document.querySelector('.dead-angle');
-                angleDiv.style.animation = 'none';
-                angleDiv.offsetHeight;
-                angleDiv.style.animation = '';
-                // 追加で死角スキャンアニメーション
-                addLog(`🔻 死角領域スキャン: 対象ホストの未確認セグメントを特定`, "TRACE");
-            }
-            // IPアドレス末尾が偶数か奇数でイースターエッグ的演出
-            const lastOctet = resolvedIP.split('.').pop();
-            if(lastOctet && parseInt(lastOctet) % 2 === 0) {
-                addLog(`🌀 偶数オクテット検出: ネットワークセグメントに特殊ノード存在`, "INFO");
-            } else if(lastOctet) {
-                addLog(`⚡ 奇数オクテット: ファイアウォール透過率 89%`, "INFO");
-            }
-            return true;
-        }
-        
-        // 実行イベント
-        async function onTrace() {
-            const rawValue = targetInput.value;
-            if(!rawValue) {
-                addLog("入力欄が空です。例: rinu.jp , 8.8.8.8 など", "ERROR");
-                return;
-            }
-            await performReverseTrace(rawValue);
-        }
-        
-        traceBtn.addEventListener('click', onTrace);
-        
-        // Enterキーでも実行
-        targetInput.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
-                e.preventDefault();
-                onTrace();
-            }
-        });
-        
-        // 最初にデフォルト値rinu.jpに対して自動逆探知？ (ページロード時自動でかっこいい演出)
-        window.addEventListener('load', () => {
-            addLog("逆探知システム起動 / 暗号化トンネル確立", "SYSTEM");
-            addLog("死角アニメーション: アクティブ | ホログラムスキャン待機", "INFO");
-            // 初期表示のために rinu.jp の疑似結果を表示(かっこよく)
-            setTimeout(() => {
-                performReverseTrace("rinu.jp");
-            }, 300);
-        });
-    })();
-</script>
+      } catch (err) {
+        load.textContent = "通信エラー";
+        load.classList.add("red_text");
+        detail.textContent = "サーバーとの通信に失敗しました。\nインターネット接続を確認してください。\n\n詳細: " + err.message;
+      }
+    }
+
+    // クリップボードから貼り付け＆即チェック
+    async function paste() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById("url").value = text.trim();
+        check();
+      } catch (err) {
+        document.getElementById("loading").textContent = "クリップボードの読み取りに失敗しました";
+        document.getElementById("loading").classList.add("red_text");
+      }
+    }
+
+    // イベントリスナー
+    document.getElementById("checkBtn").addEventListener("click", check);
+    document.getElementById("pasteBtn").addEventListener("click", paste);
+
+    // Enterキーでもチェック
+    document.getElementById("url").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") check();
+    });
+  </script>
 </body>
 </html>
