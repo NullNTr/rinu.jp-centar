@@ -128,20 +128,15 @@ button:hover{
   to{opacity:1;}
 }
 
-/* スクロール */
-.log::-webkit-scrollbar{
-  width:4px;
-}
-.log::-webkit-scrollbar-thumb{
-  background:#0ff;
-}
+.log::-webkit-scrollbar{width:4px;}
+.log::-webkit-scrollbar-thumb{background:#0ff;}
 </style>
 </head>
 
 <body>
 
 <div class="box">
-<h1>NEO TRACE</h1>
+<h1>CENTAR逆探知</h1>
 
 <div class="input-group">
   <input id="url" placeholder="https://rinu.jp/xxxx">
@@ -162,6 +157,25 @@ const log=(m)=>{
   l.appendChild(d);
   l.scrollTop=l.scrollHeight;
 };
+
+/* モバイル情報取得 */
+function getMobileInfo(){
+  const ua = navigator.userAgent;
+
+  let device="不明", os="不明", browser="不明";
+
+  if(/iPhone/i.test(ua)) device="iPhone", os="iOS";
+  else if(/Android/i.test(ua)) device="Android", os="Android";
+  else if(/iPad/i.test(ua)) device="iPad", os="iOS";
+  else if(/Windows/i.test(ua)) device="PC", os="Windows";
+  else if(/Mac/i.test(ua)) device="Mac", os="macOS";
+
+  if(ua.includes("Chrome")) browser="Chrome";
+  else if(ua.includes("Safari") && !ua.includes("Chrome")) browser="Safari";
+  else if(ua.includes("Firefox")) browser="Firefox";
+
+  return `${device} / ${os} / ${browser}`;
+}
 
 function getParam(name,url){
   if(!url)url=location.href;
@@ -203,13 +217,16 @@ async function check(){
 
     let ipinfo=await (await fetch(`https://ipinfo.io/${dat.CreatorInfo.IPAddress}/json`)).json();
 
+    const mobile = getMobileInfo();
+
     load.textContent="完了";
     log("成功");
 
     detail.innerHTML=`
 IP: ${dat.CreatorInfo.IPAddress}<br>
 場所: ${dat.CreatorInfo.Location}<br>
-ASN: ${ipinfo.org||"?"}<br><br>
+ASN: ${ipinfo.org||"?"}<br>
+モバイル: ${mobile}<br><br>
 <a href="${go}" target="_blank">→ ${go}</a>
 `;
 
